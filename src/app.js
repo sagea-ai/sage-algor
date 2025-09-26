@@ -12,32 +12,13 @@ export const App = () => {
         fullUnicode: true,
     });
 
-    // Logo
-    const logoBox = blessed.box({
-        parent: screen,
-        top: 0,
-        left: 'center',
-        width: '100%',
-        height: 8,
-        content: printLogo(),
-        tags: true,
-    });
-
-    const quickStartContent = `{bold}Quick Start{/bold}\n` +
-        `1. Ask questions, edit files, or run commands.\n` +
-        `2. Be specific for the best results.\n` +
-        `3. Create {red-fg}SAGE.md{/red-fg} files to customize your interactions with {blue-fg}SAGE.{/blue-fg}\n` +
-        `4.{red-fg}/help{/red-fg} for more information.`;
-
-    // Tips Box
-    const tipsBox = blessed.box({
+    const chatBox = blessed.box({
         parent: screen,
         tags: true,
-        top: 8,
+        top: 1,
         left: 0,
         width: '100%',
-        height: '100%-12',
-        content: quickStartContent,
+        height: '100%-5',
         scrollable: true,
         alwaysScroll: true,
         scrollbar: {
@@ -48,6 +29,8 @@ export const App = () => {
         keys: true,
         vi: true,
     });
+
+    chatBox.setContent(`${printLogo()}\n${quickStartContent}`);
 
     // Input Box
     const inputBox = blessed.textbox({
@@ -177,7 +160,7 @@ export const App = () => {
 
     // Handle Ctrl+L to clear screen
     inputBox.key(['C-l'], (ch, key) => {
-        tipsBox.setContent('');
+        chatBox.setContent('');
         screen.render();
     });
 
@@ -295,7 +278,7 @@ export const App = () => {
         if (cleanLine.trim()) {
             history.push(cleanLine);
             historyIndex = history.length;
-            handleCommand(cleanLine, tipsBox, showError, quickStartContent, inputBox);
+            handleCommand(cleanLine, chatBox, showError, quickStartContent, inputBox);
         }
         inputBox.clearValue();
         inputBox.focus();
