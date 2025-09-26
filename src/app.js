@@ -11,6 +11,7 @@ const quickStartContent = `
 │ 2. Be specific for the best results.                           │
 │ 3. Create {red-fg}SAGE.md{/red-fg} files to customize your interactions.        │
 │ 4. {red-fg}/help{/red-fg} for more information.                                 │
+│ 5. use {red-fg}@{/red-fg} to add a file as context for {cyan-fg}SAGE{/cyan-fg}                     │
 ╰────────────────────────────────────────────────────────────────╯
 `;
 
@@ -19,9 +20,10 @@ export const App = () => {
         smartCSR: true,
         title: 'Algor CLI',
         fullUnicode: true,
+        terminal: 'xterm-256color'
     });
 
-    const chatBox = blessed.box({
+    const chatBox = blessed.log({
         parent: screen,
         tags: true,
         top: 1,
@@ -37,9 +39,17 @@ export const App = () => {
         mouse: true,
         keys: true,
         vi: true,
+        style: {
+            focus: {
+                border: {
+                    fg: 'blue'
+                }
+            }
+        },
+        border: 'line'
     });
 
-    chatBox.setContent(`${printLogo()}\n${quickStartContent}`);
+    chatBox.log(`${printLogo()}\n${quickStartContent}`);
 
     // Input Box
     const inputBox = blessed.textbox({
@@ -123,6 +133,8 @@ export const App = () => {
     let readyToExit = false;
     let exitTimeout = null;
 
+    let ollamaController = new AbortController();
+
     const cancelExit = () => {
         if (readyToExit) {
             readyToExit = false;
@@ -133,10 +145,18 @@ export const App = () => {
 
     // Handle exit
     screen.key(['escape', 'q'], (ch, key) => {
-        return process.exit(0);
+        if (key.name === 'escape') {
+            ollamaController.abort();
+        } else if (key.name === 'q') {
+            return process.exit(0);
+        }
     });
     inputBox.key(['escape', 'q'], (ch, key) => {
-        return process.exit(0);
+        if (key.name === 'escape') {
+            ollamaController.abort();
+        } else if (key.name === 'q') {
+            return process.exit(0);
+        }
     });
 
     const handleCtrlC = () => {
@@ -287,11 +307,21 @@ export const App = () => {
         if (cleanLine.trim()) {
             history.push(cleanLine);
             historyIndex = history.length;
-            handleCommand(cleanLine, chatBox, showError, quickStartContent, inputBox);
+            ollamaController = new AbortController();
+            handleCommand(cleanLine, chatBox, showError, quickStartContent, inputBox, ollamaController);
         }
         inputBox.clearValue();
         inputBox.focus();
         screen.render();
+    });
+
+    // Focus management
+    const focusable = [inputBox, chatBox];
+    let focusIndex = 0;
+
+    screen.key(['tab'], (ch, key) => {
+        focusIndex = (focusIndex + 1) % focusable.length;
+        focusable[focusIndex].focus();
     });
 
     inputBox.focus();

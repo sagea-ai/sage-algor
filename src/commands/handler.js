@@ -34,7 +34,7 @@ const parseMentions = async (line) => {
     };
 };
 
-export const handleCommand = async (line, outputBox, showError, quickStartContent, inputBox) => {
+export const handleCommand = async (line, outputBox, showError, quickStartContent, inputBox, ollamaController) => {
     const parts = line.trim().split(' ');
     const command = parts[0];
     const args = parts.slice(1);
@@ -67,10 +67,10 @@ export const handleCommand = async (line, outputBox, showError, quickStartConten
 │                                                                │
 ╰────────────────────────────────────────────────────────────────╯
 `;
-            outputBox.setContent(helpMessage);
+            outputBox.log(helpMessage);
             break;
         case '/about':
-            outputBox.setContent(`SAGE Algor CLI version ${packageJson.version}`);
+            outputBox.log(`SAGE Algor CLI version ${packageJson.version}`);
             break;
         case '/clear':
             outputBox.setContent(quickStartContent);
@@ -80,20 +80,20 @@ export const handleCommand = async (line, outputBox, showError, quickStartConten
             break;
         case '/edit':
             if (args.length === 0) {
-                outputBox.setContent(chalk.red('Please provide a file path.'));
+                outputBox.log(chalk.red('Please provide a file path.'));
                 break;
             }
             const filePath = path.resolve(process.cwd(), args[0]);
             try {
                 const content = await fs.readFile(filePath, 'utf-8');
-                outputBox.setContent(chalk.bold.cyan(`Content of ${filePath}:\n\n`) + content);
+                outputBox.log(chalk.bold.cyan(`Content of ${filePath}:\n\n`) + content);
             } catch (error) {
                 showError(chalk.red(`Error reading file: ${error.message}`));
             }
             break;
         case '/run':
             if (args.length === 0) {
-                outputBox.setContent(chalk.red('Please provide a command to run.'));
+                outputBox.log(chalk.red('Please provide a command to run.'));
                 break;
             }
             const cmd = args[0];
@@ -103,17 +103,17 @@ export const handleCommand = async (line, outputBox, showError, quickStartConten
                 if (stderr) {
                     showError(chalk.red(`Command error:\n${stderr}`));
                 } else {
-                    outputBox.setContent(chalk.bold.cyan(`Output of '${line}':\n\n`) + stdout);
+                    outputBox.log(chalk.bold.cyan(`Output of '${line}':\n\n`) + stdout);
                 }
             } catch (error) {
                 showError(chalk.red(`Command failed:\n${error.message}`));
             }
             break;
         case '/test':
-            outputBox.setContent(chalk.blue(`Testing ${args.join(' ')}... (Not implemented)`));
+            outputBox.log(chalk.blue(`Testing ${args.join(' ')}... (Not implemented)`));
             break;
         case '/history':
-            outputBox.setContent(chalk.blue('Displaying history... (Not implemented)'));
+            outputBox.log(chalk.blue('Displaying history... (Not implemented)'));
             break;
         case 'exit':
         case '/quit':
@@ -126,7 +126,7 @@ export const handleCommand = async (line, outputBox, showError, quickStartConten
 
             outputBox.insertBottom(formatPrompt(line));
             outputBox.screen.render();
-            return runOllama(fullPrompt, outputBox, showError, inputBox);
+            return runOllama(fullPrompt, outputBox, showError, inputBox, ollamaController);
     }
     outputBox.screen.render();
 };

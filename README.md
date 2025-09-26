@@ -125,10 +125,11 @@ Once launched, you can:
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+C`, `q`, `Escape` | Quit application |
+| `Ctrl+C`, `q`, | Quit application |
 | `Ctrl+L` | Clear the screen |
 | `↑` / `↓` | Navigate command history |
 | `Enter` | Send message |
+| `Escape` | Interrupt Code/Response Generation |
 
 ## SAGE Models
 
