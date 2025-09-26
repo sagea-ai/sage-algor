@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { runOllama } from '../ollama/client.js';
+import { formatPrompt } from '../ui/chat.js';
 import { createRequire } from 'module';
 import fs from 'fs/promises';
 import { execa } from 'execa';
@@ -8,7 +9,7 @@ import path from 'path';
 const require = createRequire(import.meta.url);
 const packageJson = require('../../package.json');
 
-export const handleCommand = async (line, outputBox, showError, quickStartContent) => {
+export const handleCommand = async (line, outputBox, showError, quickStartContent, inputBox) => {
     const parts = line.trim().split(' ');
     const command = parts[0];
     const args = parts.slice(1);
@@ -93,10 +94,9 @@ export const handleCommand = async (line, outputBox, showError, quickStartConten
         case '/quit':
             return process.exit(0);
         default:
-            outputBox.setContent(chalk.bold.cyan('You:') + `
-${line}
-`);
-            return runOllama(line, outputBox, showError);
+            outputBox.insertBottom(formatPrompt(line));
+            outputBox.screen.render();
+            return runOllama(line, outputBox, showError, inputBox);
     }
     outputBox.screen.render();
 };

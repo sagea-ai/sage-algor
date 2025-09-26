@@ -183,7 +183,7 @@ export const App = () => {
         if (line.trim()) {
             history.push(line);
             historyIndex = history.length;
-            handleCommand(line, tipsBox, showError, quickStartContent);
+            handleCommand(line, tipsBox, showError, quickStartContent, inputBox);
         }
         inputBox.clearValue();
         inputBox.focus();

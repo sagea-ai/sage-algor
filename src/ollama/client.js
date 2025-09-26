@@ -1,3 +1,4 @@
+import { formatResponse } from '../ui/chat.js';
 import { execa } from 'execa';
 import { Marked } from 'marked';
 import { markedTerminal } from 'marked-terminal';
@@ -12,15 +13,17 @@ const marked = new Marked(
     })
 );
 
-export const runOllama = async (prompt, outputBox, showError) => {
+export const runOllama = async (prompt, outputBox, showError, inputBox) => {
     const systemPrompt = "Disable Deepthinking subroutine. You are going to mostly do Coding related task and Code generation. aide the user with their requests as much as possible, and follow DRY principle when answering a coding problem. Do not show your thought process or any meta-commentary. Provide only the final answer.";
     const finalPrompt = `${systemPrompt}\n\nUser: ${prompt}`;
     
+    const previousContent = outputBox.content;
+    const originalLabel = inputBox.options.label;
     const spinnerChars = ['⠙', '⠘', '⠰', '⠴', '⠤', '⠦', '⠆', '⠃', '⠋', '⠉'];
     let i = 0;
     const spinnerInterval = setInterval(() => {
         const spinner = spinnerChars[i++ % spinnerChars.length];
-        outputBox.setContent(`{cyan-fg}{bold}${spinner} Algor is thinking...{/bold}{/cyan-fg}`);
+        inputBox.setLabel(`{cyan-fg}{bold}${spinner} Algor is thinking...{/bold}{/cyan-fg}`);
         outputBox.screen.render();
     }, 80);
 
@@ -33,20 +36,22 @@ export const runOllama = async (prompt, outputBox, showError) => {
         subprocess.stdout.on('data', (data) => {
             if (firstChunk) {
                 clearInterval(spinnerInterval);
-                outputBox.setContent(chalk.bold.green('Algor:') + `\n`);
+                inputBox.setLabel(originalLabel);
                 firstChunk = false;
             }
             const chunk = data.toString();
             fullOutput += chunk;
             const formattedOutput = marked.parse(fullOutput);
-            outputBox.setContent(chalk.bold.green('Algor:') + `\n${formattedOutput}`);
+            outputBox.setContent(previousContent + formatResponse(formattedOutput));
             outputBox.screen.render();
         });
 
         await subprocess;
+        inputBox.setLabel(originalLabel);
 
     } catch (error) {
         clearInterval(spinnerInterval);
+        inputBox.setLabel(originalLabel);
         const errorMessage = error.stderr || error.message;
         showError(`${chalk.red('Error communicating with Ollama:')}\n${errorMessage}\nPlease ensure Ollama is running and the model \`comethrusws/sage-reasoning:3b\` is installed.`);
     }
