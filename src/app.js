@@ -24,13 +24,12 @@ export const App = () => {
     // Tips Box
     const tipsBox = blessed.box({
         parent: screen,
-        label: '{bold}Quick Start{/bold}',
         tags: true,
         top: 8,
         left: 0,
         width: '100%',
         height: '100%-12',
-        content: '\n1. Ask questions, edit files, or run commands.\n2. Be specific for the best results.\n3. Create SAGE.md files to customize your interactions with Gemini.\n4. /help for more information.',
+        content: '{bold}Quick Start{/bold}\n1. Ask questions, edit files, or run commands.\n2. Be specific for the best results.\n3. Create SAGE.md files to customize your interactions with Gemini.\n4. /help for more information.',
         scrollable: true,
         alwaysScroll: true,
         scrollbar: {
