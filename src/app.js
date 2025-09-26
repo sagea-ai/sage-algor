@@ -291,10 +291,11 @@ export const App = () => {
             fileList.enterSelected();
             return;
         }
-        if (line.trim()) {
-            history.push(line);
+        const cleanLine = line.replace(/\{green-fg\}|\{\/green-fg\}/g, '');
+        if (cleanLine.trim()) {
+            history.push(cleanLine);
             historyIndex = history.length;
-            handleCommand(line, tipsBox, showError, quickStartContent, inputBox);
+            handleCommand(cleanLine, tipsBox, showError, quickStartContent, inputBox);
         }
         inputBox.clearValue();
         inputBox.focus();
