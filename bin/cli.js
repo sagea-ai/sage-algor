@@ -3,6 +3,9 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { execa } from 'execa';
+import ora from 'ora';
+import { Marked } from 'marked';
+import { markedTerminal } from 'marked-terminal';
 import { highlight } from 'cli-highlight';
 
 const printLogo = () => {
@@ -33,19 +36,28 @@ const printLogo = () => {
     console.log('\n');
 };
 
+const marked = new Marked(
+    markedTerminal({
+        highlight: (code, lang) => {
+            return highlight(code, { language: lang, ignoreIllegals: true });
+        }
+    })
+);
+
 const runOllama = async (prompt) => {
-    const systemPrompt = "You are Algor, a CLI coding assistant. You are running in a REPL environment.";
+    const systemPrompt = "You are Algor, a CLI coding assistant. You are running in a REPL environment. Your output should be in markdown format.";
     const finalPrompt = `${systemPrompt}\n\nUser: ${prompt}`;
+    
+    const spinner = ora('Algor is thinking...').start();
 
     try {
-        console.log(chalk.yellow('Algor is thinking...'));
         const { stdout } = await execa('ollama', ['run', 'comethrusws/sage-reasoning:3b', finalPrompt]);
-        
-        console.log(chalk.green('Algor:'));
-        console.log(highlight(stdout, { language: 'javascript', ignoreIllegals: true }));
+        spinner.succeed(chalk.bold.green('Algor:'));
+        console.log(marked.parse(stdout));
 
     } catch (error) {
-        console.error(chalk.red('Error communicating with Ollama:'), error.stderr || error.message);
+        spinner.fail(chalk.red('Error communicating with Ollama:'));
+        console.error(error.stderr || error.message);
         console.error(chalk.red('Please ensure Ollama is running and the model `comethrusws/sage-reasoning:3b` is installed.'));
     }
 };
@@ -73,6 +85,8 @@ const handleCommand = (line) => {
             console.log(chalk.yellow('Exiting Algor. Goodbye!'));
             process.exit(0);
         default:
+            console.log(chalk.bold.cyan('You:'));
+            console.log(line + '\n');
             return runOllama(line);
     }
     return Promise.resolve();
@@ -83,7 +97,7 @@ const startRepl = () => {
         {
             type: 'input',
             name: 'line',
-            message: chalk.green('algor >>'),
+            message: chalk.bold('>>'),
         },
     ]).then(async (answers) => {
         await handleCommand(answers.line);
@@ -93,8 +107,6 @@ const startRepl = () => {
 
 const main = () => {
     printLogo();
-    console.log(chalk.bold.yellow('Welcome to Algor!'));
-    console.log('Type your coding prompts or commands like :edit, :run, :test, exit.');
     startRepl();
 };
 
