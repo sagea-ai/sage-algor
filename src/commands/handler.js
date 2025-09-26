@@ -30,7 +30,7 @@ export const handleCommand = async (line, outputBox, showError) => {
 │   /run <command>       - Run a command.                        │
 │   /test <file>         - Run tests for a file. (Coming Soon)   │
 │   /history             - Display command history. (Coming Soon)│
-│   /exit, /quit         - Exit the application.                 │
+│   exit, /quit         - Exit the application.                 │
 │                                                                │
 │ Keyboard Shortcuts:                                            │
 │   Ctrl+C, q, escape    - Quit application                      │
@@ -85,7 +85,7 @@ export const handleCommand = async (line, outputBox, showError) => {
         case '/history':
             outputBox.setContent(chalk.blue('Displaying history... (Not implemented)'));
             break;
-        case '/exit':
+        case 'exit':
         case '/quit':
             return process.exit(0);
         default:

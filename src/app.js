@@ -120,9 +120,51 @@ export const App = () => {
     const history = [];
     let historyIndex = 0;
 
+    let readyToExit = false;
+    let exitTimeout = null;
+
+    const cancelExit = () => {
+        if (readyToExit) {
+            readyToExit = false;
+            clearTimeout(exitTimeout);
+            updateStatus();
+        }
+    }
+
     // Handle exit
-    screen.key(['escape', 'q', 'C-c'], (ch, key) => {
+    screen.key(['escape', 'q'], (ch, key) => {
         return process.exit(0);
+    });
+    inputBox.key(['escape', 'q'], (ch, key) => {
+        return process.exit(0);
+    });
+
+    const handleCtrlC = () => {
+        if (readyToExit) {
+            return;
+        }
+        readyToExit = true;
+        statusBar.setContent('{red-fg}Press (c) to exit. Any other key to cancel.{/red-fg}');
+        screen.render();
+        exitTimeout = setTimeout(() => {
+            cancelExit();
+        }, 2000);
+    };
+
+    screen.key('C-c', handleCtrlC);
+    inputBox.key('C-c', handleCtrlC);
+
+    screen.on('keypress', (ch, key) => {
+        if (readyToExit) {
+            if (key.name === 'c' && !key.ctrl) {
+                return process.exit(0);
+            }
+            // Don't cancel on the Ctrl+C that triggered the exit mode
+            if (key.name === 'c' && key.ctrl) {
+                return;
+            }
+            cancelExit();
+        }
     });
 
     // Handle Ctrl+L to clear screen
