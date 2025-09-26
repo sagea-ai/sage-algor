@@ -17,7 +17,7 @@ const quickStartContent = `
 export const App = () => {
     const screen = blessed.screen({
         smartCSR: true,
-        title: 'SAGE Algor',
+        title: 'Algor CLI',
         fullUnicode: true,
     });
 
