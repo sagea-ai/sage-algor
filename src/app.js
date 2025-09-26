@@ -74,6 +74,33 @@ export const App = () => {
         tags: true,
     });
 
+    // Error Box
+    const errorBox = blessed.box({
+        parent: screen,
+        bottom: 4,
+        left: 'center',
+        width: '80%',
+        height: 4,
+        border: 'line',
+        style: {
+            border: {
+                fg: 'red',
+            },
+        },
+        tags: true,
+        hidden: true,
+    });
+
+    const showError = (message) => {
+        errorBox.setContent(message);
+        errorBox.show();
+        screen.render();
+        setTimeout(() => {
+            errorBox.hide();
+            screen.render();
+        }, 5000); // Hide after 5 seconds
+    };
+
     const updateStatus = () => {
         const left = `{cyan-fg}${process.cwd()}{/cyan-fg}`;
         const middle = `Sandbox Initialised (see /docs)`;
@@ -98,7 +125,7 @@ export const App = () => {
     // Handle input
     inputBox.on('submit', (line) => {
         if (line.trim()) {
-            handleCommand(line, tipsBox);
+            handleCommand(line, tipsBox, showError);
         }
         inputBox.clearValue();
         inputBox.focus();

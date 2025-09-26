@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { runOllama } from '../ollama/client.js';
 
-export const handleCommand = (line, outputBox) => {
+export const handleCommand = (line, outputBox, showError) => {
     const parts = line.trim().split(' ');
     const command = parts[0];
     const args = parts.slice(1);
@@ -26,7 +26,7 @@ export const handleCommand = (line, outputBox) => {
             outputBox.setContent(chalk.bold.cyan('You:') + `
 ${line}
 `);
-            return runOllama(line, outputBox);
+            return runOllama(line, outputBox, showError);
     }
     outputBox.screen.render();
     return Promise.resolve();

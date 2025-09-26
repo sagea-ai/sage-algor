@@ -13,7 +13,7 @@ const marked = new Marked(
     })
 );
 
-export const runOllama = async (prompt, outputBox) => {
+export const runOllama = async (prompt, outputBox, showError) => {
     const systemPrompt = "You are Algor, a CLI coding assistant. You are running in a REPL environment. Your output should be in markdown format.";
     const finalPrompt = `${systemPrompt}\n\nUser: ${prompt}`;
     
@@ -30,7 +30,7 @@ export const runOllama = async (prompt, outputBox) => {
     } catch (error) {
         spinner.fail(chalk.red('Error communicating with Ollama:'));
         const errorMessage = error.stderr || error.message;
-        outputBox.setContent(`${chalk.red('Error communicating with Ollama:')}\n${errorMessage}\nPlease ensure Ollama is running and the model \`comethrusws/sage-reasoning:3b\` is installed.`);
+        showError(`${chalk.red('Error communicating with Ollama:')}\n${errorMessage}\nPlease ensure Ollama is running and the model \`comethrusws/sage-reasoning:3b\` is installed.`);
     } finally {
         outputBox.screen.render();
     }

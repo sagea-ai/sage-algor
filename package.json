@@ -13,5 +13,8 @@
     "marked-terminal": "^6.3.0",
     "blessed": "^0.1.81"
   },
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/install.js"
+  }
 }
