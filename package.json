@@ -16,6 +16,7 @@
   },
   "type": "module",
   "scripts": {
-    "postinstall": "node scripts/install.js"
+    "postinstall": "node scripts/install.js",
+    "start": "node bin/cli.js"
   }
 }

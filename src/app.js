@@ -235,6 +235,15 @@ export const App = () => {
 
     inputBox.on('keypress', (ch, key) => {
         const value = inputBox.getValue();
+        if (key.name === 'backspace') {
+            const lastTag = value.lastIndexOf('{');
+            if (lastTag !== -1 && value.endsWith('}')) {
+                inputBox.setValue(value.substring(0, lastTag));
+                screen.render();
+                return;
+            }
+        }
+
         if (fileList.visible && ['up', 'down'].includes(key.name)) {
             fileList.focus();
             return;
@@ -252,11 +261,13 @@ export const App = () => {
     fileList.on('select', (item) => {
         const value = inputBox.getValue();
         const lastAt = value.lastIndexOf('@');
-        const newValue = value.substring(0, lastAt) + `@{green-fg}${item.getText()}{/green-fg}`.replace(/\\/g, '/');
-        inputBox.setValue(newValue);
+        const newValue = value.substring(0, lastAt) + `{green-fg}@${item.getText()}{/green-fg}`.replace(/\\/g, '/');
+        setTimeout(() => {
+            inputBox.setValue(newValue);
+            screen.render();
+        }, 0);
         fileList.hide();
         inputBox.focus();
-        screen.render();
     });
 
     inputBox.key(['up', 'down'], (ch, key) => {
