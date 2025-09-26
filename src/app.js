@@ -117,19 +117,50 @@ export const App = () => {
     updateStatus();
     screen.on('resize', updateStatus);
 
+    const history = [];
+    let historyIndex = 0;
+
     // Handle exit
     screen.key(['escape', 'q', 'C-c'], (ch, key) => {
         return process.exit(0);
     });
 
+    // Handle Ctrl+L to clear screen
+    inputBox.key(['C-l'], (ch, key) => {
+        tipsBox.setContent('');
+        screen.render();
+    });
+
     // Handle input
     inputBox.on('submit', (line) => {
         if (line.trim()) {
+            history.push(line);
+            historyIndex = history.length;
             handleCommand(line, tipsBox, showError);
         }
         inputBox.clearValue();
         inputBox.focus();
         screen.render();
+    });
+
+    inputBox.key('up', () => {
+        if (historyIndex > 0) {
+            historyIndex--;
+            inputBox.setValue(history[historyIndex]);
+            screen.render();
+        }
+    });
+
+    inputBox.key('down', () => {
+        if (historyIndex < history.length - 1) {
+            historyIndex++;
+            inputBox.setValue(history[historyIndex]);
+            screen.render();
+        } else {
+            historyIndex = history.length;
+            inputBox.clearValue();
+            screen.render();
+        }
     });
 
     inputBox.focus();
