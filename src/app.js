@@ -19,9 +19,10 @@ export const App = () => {
         smartCSR: true,
         title: 'Algor CLI',
         fullUnicode: true,
+        terminal: 'xterm-256color'
     });
 
-    const chatBox = blessed.box({
+    const chatBox = blessed.log({
         parent: screen,
         tags: true,
         top: 1,
@@ -37,9 +38,17 @@ export const App = () => {
         mouse: true,
         keys: true,
         vi: true,
+        style: {
+            focus: {
+                border: {
+                    fg: 'blue'
+                }
+            }
+        },
+        border: 'line'
     });
 
-    chatBox.setContent(`${printLogo()}\n${quickStartContent}`);
+    chatBox.log(`${printLogo()}\n${quickStartContent}`);
 
     // Input Box
     const inputBox = blessed.textbox({
@@ -292,6 +301,15 @@ export const App = () => {
         inputBox.clearValue();
         inputBox.focus();
         screen.render();
+    });
+
+    // Focus management
+    const focusable = [inputBox, chatBox];
+    let focusIndex = 0;
+
+    screen.key(['tab'], (ch, key) => {
+        focusIndex = (focusIndex + 1) % focusable.length;
+        focusable[focusIndex].focus();
     });
 
     inputBox.focus();
