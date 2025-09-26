@@ -21,6 +21,12 @@ export const App = () => {
         tags: true,
     });
 
+    const quickStartContent = `{bold}Quick Start{/bold}\n` +
+        `1. Ask questions, edit files, or run commands.\n` +
+        `2. Be specific for the best results.\n` +
+        `3. Create SAGE.md files to customize your interactions with Gemini.\n` +
+        `4. /help for more information.`;
+
     // Tips Box
     const tipsBox = blessed.box({
         parent: screen,
@@ -29,11 +35,7 @@ export const App = () => {
         left: 0,
         width: '100%',
         height: '100%-12',
-        content: `{bold}Quick Start{/bold}\n` +
-            `1. Ask questions, edit files, or run commands.\n` +
-            `2. Be specific for the best results.\n` +
-            `3. Create SAGE.md files to customize your interactions with Gemini.\n` +
-            `4. /help for more information.`,
+        content: quickStartContent,
         scrollable: true,
         alwaysScroll: true,
         scrollbar: {
@@ -181,7 +183,7 @@ export const App = () => {
         if (line.trim()) {
             history.push(line);
             historyIndex = history.length;
-            handleCommand(line, tipsBox, showError);
+            handleCommand(line, tipsBox, showError, quickStartContent);
         }
         inputBox.clearValue();
         inputBox.focus();

@@ -8,7 +8,7 @@ import path from 'path';
 const require = createRequire(import.meta.url);
 const packageJson = require('../../package.json');
 
-export const handleCommand = async (line, outputBox, showError) => {
+export const handleCommand = async (line, outputBox, showError, quickStartContent) => {
     const parts = line.trim().split(' ');
     const command = parts[0];
     const args = parts.slice(1);
@@ -25,12 +25,13 @@ export const handleCommand = async (line, outputBox, showError) => {
 │ Commands:                                                      │
 │   /help                - Display this help message.            │
 │   /about               - Display version info.                 │
-│   /clear               - Clear the screen.                     │
+│   /clear               - Clear the chat context.               │
+│   /clean               - Clear the screen                      │
 │   /edit <file>         - Load a file into the context.         │
 │   /run <command>       - Run a command.                        │
 │   /test <file>         - Run tests for a file. (Coming Soon)   │
 │   /history             - Display command history. (Coming Soon)│
-│   exit, /quit         - Exit the application.                 │
+│   exit, /quit         - Exit the application.                  │
 │                                                                │
 │ Keyboard Shortcuts:                                            │
 │   Ctrl+C, q, escape    - Quit application                      │
@@ -46,6 +47,9 @@ export const handleCommand = async (line, outputBox, showError) => {
             outputBox.setContent(`SAGE Algor CLI version ${packageJson.version}`);
             break;
         case '/clear':
+            outputBox.setContent(quickStartContent);
+            break;
+        case '/clean':
             outputBox.setContent('');
             break;
         case '/edit':
