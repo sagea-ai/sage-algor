@@ -41,7 +41,9 @@ export const runOllama = async (prompt, outputBox, showError, inputBox) => {
             }
             const chunk = data.toString();
             fullOutput += chunk;
-            const formattedOutput = marked.parse(fullOutput);
+            const formattedOutput = marked.parse(fullOutput)
+                .replace(/<think>/g, chalk.blue('<think>'))
+                .replace(/<\/think>/g, chalk.blue('</think>'));
             outputBox.setContent(previousContent + formatResponse(formattedOutput));
             outputBox.screen.render();
         });

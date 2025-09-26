@@ -24,7 +24,7 @@ export const App = () => {
     const quickStartContent = `{bold}Quick Start{/bold}\n` +
         `1. Ask questions, edit files, or run commands.\n` +
         `2. Be specific for the best results.\n` +
-        `3. Create SAGE.md files to customize your interactions with SAGE.\n` +
+        `3. Create {red-fg}SAGE.md{/red-fg} files to customize your interactions with {blue-fg}SAGE.{/blue-fg}\n` +
         `4.{red-fg}/help{/red-fg} for more information.`;
 
     // Tips Box
