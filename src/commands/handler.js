@@ -51,17 +51,15 @@ const processMention = async (mention) => {
 };
 
 const parseMentions = async (line) => {
-    const parts = line.split(' ');
-    let prompt = '';
+    const mentionRegex = /@(\S+)/g;
+    let match;
     const fileContents = [];
+    let prompt = line;
 
-    for (const part of parts) {
-        if (part.startsWith('@')) {
-            const mention = part.substring(1);
-            fileContents.push(await processMention(mention));
-        } else {
-            prompt += `${part} `;
-        }
+    while ((match = mentionRegex.exec(line)) !== null) {
+        const mention = match[1];
+        fileContents.push(await processMention(mention));
+        prompt = prompt.replace(match[0], '');
     }
 
     return {
