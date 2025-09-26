@@ -56,6 +56,7 @@ export const runOllama = async (prompt, outputBox, showError, inputBox, ollamaCo
         inputBox.setLabel(originalLabel);
         if (error.isCanceled) {
             outputBox.setContent(previousContent + formatResponse('\n{red-fg}User Interruption Detected{/red-fg}\n'));
+            inputBox.focus();
             outputBox.screen.render();
         } else {
             const errorMessage = error.stderr || error.message;
