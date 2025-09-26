@@ -29,7 +29,11 @@ export const App = () => {
         left: 0,
         width: '100%',
         height: '100%-12',
-        content: '{bold}Quick Start{/bold}\n1. Ask questions, edit files, or run commands.\n2. Be specific for the best results.\n3. Create SAGE.md files to customize your interactions with Gemini.\n4. /help for more information.',
+        content: `{bold}Quick Start{/bold}\n` +
+            `1. Ask questions, edit files, or run commands.\n` +
+            `2. Be specific for the best results.\n` +
+            `3. Create SAGE.md files to customize your interactions with Gemini.\n` +
+            `4. /help for more information.`,
         scrollable: true,
         alwaysScroll: true,
         scrollbar: {
@@ -100,7 +104,7 @@ export const App = () => {
         }, 5000); // Hide after 5 seconds
     };
 
-    const updateStatus = () => {
+     const updateStatus = () => {
         const left = `{cyan-fg}${process.cwd()}{/cyan-fg}`;
         const middle = `Sandbox Initialised (see /docs)`;
         const right = `{green-fg}SAGE v1{/green-fg}`;
@@ -112,7 +116,7 @@ export const App = () => {
         statusBar.setContent(left + " ".repeat(middle_padding) + `{white-fg}${middle}{/white-fg}` + " ".repeat(right_padding) + right);
         screen.render();
     };
-
+    
     updateStatus();
     screen.on('resize', updateStatus);
 
