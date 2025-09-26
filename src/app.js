@@ -1,4 +1,5 @@
 import blessed from 'blessed';
+import { buildFileIndex, searchFiles } from './utils/file-indexer.js';
 import { printLogo } from './ui/logo.js';
 import { handleCommand } from './commands/handler.js';
 import chalk from 'chalk';
@@ -16,6 +17,7 @@ const quickStartContent = `
 `;
 
 export const App = () => {
+    buildFileIndex(process.cwd());
     const screen = blessed.screen({
         smartCSR: true,
         title: 'Algor CLI',
@@ -214,24 +216,12 @@ export const App = () => {
         vi: true,
     });
 
-    const showRecommendations = async (query = '') => {
+    const showRecommendations = (query = '') => {
         try {
-            const getFiles = async (dir) => {
-                const dirents = await fs.readdir(dir, { withFileTypes: true });
-                const files = await Promise.all(dirents.map((dirent) => {
-                    const res = path.resolve(dir, dirent.name);
-                    return dirent.isDirectory() ? getFiles(res) : res;
-                }));
-                return Array.prototype.concat(...files);
-            }
-
-            const files = await getFiles(process.cwd());
-            const relativeFiles = files.map(file => path.relative(process.cwd(), file));
-
-            const filteredFiles = relativeFiles.filter(file => file.startsWith(query));
+            const filteredFiles = searchFiles(query);
 
             if (filteredFiles.length > 0) {
-                fileList.setItems(filteredFiles);
+                fileList.setItems(filteredFiles.map(file => path.relative(process.cwd(), file)));
                 fileList.show();
                 screen.render();
             } else {
