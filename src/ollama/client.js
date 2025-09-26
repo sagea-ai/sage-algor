@@ -13,7 +13,7 @@ const marked = new Marked(
 );
 
 export const runOllama = async (prompt, outputBox, showError) => {
-    const systemPrompt = "You are Algor, a CLI coding assistant. You are running in a REPL environment. Your output should be in markdown format.";
+    const systemPrompt = "Disable Deepthinking subroutine. You are going to mostly do Coding related task and Code generation. aide the user with their requests as much as possible, and follow DRY principle when answering a coding problem. Do not show your thought process or any meta-commentary. Provide only the final answer.";
     const finalPrompt = `${systemPrompt}\n\nUser: ${prompt}`;
     
     const spinnerChars = ['⠙', '⠘', '⠰', '⠴', '⠤', '⠦', '⠆', '⠃', '⠋', '⠉'];
