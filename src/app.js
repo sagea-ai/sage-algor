@@ -2,6 +2,8 @@ import blessed from 'blessed';
 import { printLogo } from './ui/logo.js';
 import { handleCommand } from './commands/handler.js';
 import chalk from 'chalk';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const App = () => {
     const screen = blessed.screen({
@@ -10,32 +12,13 @@ export const App = () => {
         fullUnicode: true,
     });
 
-    // Logo
-    const logoBox = blessed.box({
-        parent: screen,
-        top: 0,
-        left: 'center',
-        width: '100%',
-        height: 8,
-        content: printLogo(),
-        tags: true,
-    });
-
-    const quickStartContent = `{bold}Quick Start{/bold}\n` +
-        `1. Ask questions, edit files, or run commands.\n` +
-        `2. Be specific for the best results.\n` +
-        `3. Create SAGE.md files to customize your interactions with Gemini.\n` +
-        `4. /help for more information.`;
-
-    // Tips Box
-    const tipsBox = blessed.box({
+    const chatBox = blessed.box({
         parent: screen,
         tags: true,
-        top: 8,
+        top: 1,
         left: 0,
         width: '100%',
-        height: '100%-12',
-        content: quickStartContent,
+        height: '100%-5',
         scrollable: true,
         alwaysScroll: true,
         scrollbar: {
@@ -46,6 +29,8 @@ export const App = () => {
         keys: true,
         vi: true,
     });
+
+    chatBox.setContent(`${printLogo()}\n${quickStartContent}`);
 
     // Input Box
     const inputBox = blessed.textbox({
@@ -67,6 +52,7 @@ export const App = () => {
         },
         inputOnFocus: true,
         label: 'Input',
+        tags: true,
     });
 
     // Status Bar
@@ -174,40 +160,129 @@ export const App = () => {
 
     // Handle Ctrl+L to clear screen
     inputBox.key(['C-l'], (ch, key) => {
-        tipsBox.setContent('');
+        chatBox.setContent('');
         screen.render();
     });
 
-    // Handle input
-    inputBox.on('submit', (line) => {
-        if (line.trim()) {
-            history.push(line);
-            historyIndex = history.length;
-            handleCommand(line, tipsBox, showError, quickStartContent);
+    const fileList = blessed.list({
+        parent: screen,
+        bottom: 4,
+        left: 0,
+        width: '100%',
+        height: 10,
+        border: 'line',
+        style: {
+            border: {
+                fg: 'blue',
+            },
+            selected: {
+                bg: 'blue',
+            },
+        },
+        hidden: true,
+        keys: true,
+        mouse: true,
+        vi: true,
+    });
+
+    const showRecommendations = async (query = '') => {
+        try {
+            const getFiles = async (dir) => {
+                const dirents = await fs.readdir(dir, { withFileTypes: true });
+                const files = await Promise.all(dirents.map((dirent) => {
+                    const res = path.resolve(dir, dirent.name);
+                    return dirent.isDirectory() ? getFiles(res) : res;
+                }));
+                return Array.prototype.concat(...files);
+            }
+
+            const files = await getFiles(process.cwd());
+            const relativeFiles = files.map(file => path.relative(process.cwd(), file));
+
+            const filteredFiles = relativeFiles.filter(file => file.startsWith(query));
+
+            if (filteredFiles.length > 0) {
+                fileList.setItems(filteredFiles);
+                fileList.show();
+                screen.render();
+            } else {
+                fileList.hide();
+                screen.render();
+            }
+        } catch (error) {
+            showError(`Error reading directory: ${error.message}`);
         }
-        inputBox.clearValue();
+    };
+
+    inputBox.on('keypress', (ch, key) => {
+        const value = inputBox.getValue();
+        if (fileList.visible && ['up', 'down'].includes(key.name)) {
+            fileList.focus();
+            return;
+        }
+
+        if (value.includes('@')) {
+            const query = value.substring(value.lastIndexOf('@') + 1);
+            showRecommendations(query);
+        } else {
+            fileList.hide();
+            screen.render();
+        }
+    });
+
+    fileList.on('select', (item) => {
+        const value = inputBox.getValue();
+        const lastAt = value.lastIndexOf('@');
+        const newValue = value.substring(0, lastAt) + `{green-fg}${item.getText()}{/green-fg}`;
+        inputBox.setValue(newValue);
+        fileList.hide();
         inputBox.focus();
         screen.render();
     });
 
-    inputBox.key('up', () => {
-        if (historyIndex > 0) {
-            historyIndex--;
-            inputBox.setValue(history[historyIndex]);
+    inputBox.key(['up', 'down'], (ch, key) => {
+        if (fileList.visible) {
+            fileList.focus();
+            if (key.name === 'up') fileList.up(1);
+            if (key.name === 'down') fileList.down(1);
             screen.render();
+            return;
+        }
+
+        if (key.name === 'up') {
+            if (historyIndex > 0) {
+                historyIndex--;
+                inputBox.setValue(history[historyIndex]);
+                screen.render();
+            }
+        } else if (key.name === 'down') {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                inputBox.setValue(history[historyIndex]);
+                screen.render();
+            } else {
+                historyIndex = history.length;
+                inputBox.clearValue();
+                screen.render();
+            }
         }
     });
 
-    inputBox.key('down', () => {
-        if (historyIndex < history.length - 1) {
-            historyIndex++;
-            inputBox.setValue(history[historyIndex]);
-            screen.render();
-        } else {
-            historyIndex = history.length;
-            inputBox.clearValue();
-            screen.render();
+    // Handle input
+    inputBox.on('submit', (line) => {
+        if (fileList.visible) {
+            fileList.enterSelected();
+            return;
         }
+        const cleanLine = line.replace(/\{green-fg\}|\{\/green-fg\}/g, '');
+        if (cleanLine.trim()) {
+            history.push(cleanLine);
+            historyIndex = history.length;
+            handleCommand(cleanLine, chatBox, showError, quickStartContent, inputBox);
+        }
+        inputBox.clearValue();
+        inputBox.focus();
+        screen.render();
     });
 
     inputBox.focus();

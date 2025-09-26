@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { runOllama } from '../ollama/client.js';
+import { formatPrompt } from '../ui/chat.js';
 import { createRequire } from 'module';
 import fs from 'fs/promises';
 import { execa } from 'execa';
@@ -8,7 +9,32 @@ import path from 'path';
 const require = createRequire(import.meta.url);
 const packageJson = require('../../package.json');
 
-export const handleCommand = async (line, outputBox, showError, quickStartContent) => {
+const parseMentions = async (line) => {
+    const parts = line.split(' ');
+    let prompt = '';
+    const fileContents = [];
+
+    for (const part of parts) {
+        if (part.startsWith('@')) {
+            const filePath = path.resolve(process.cwd(), part.substring(1));
+            try {
+                const content = await fs.readFile(filePath, 'utf-8');
+                fileContents.push(`File: ${filePath}\n${content}`);
+            } catch (error) {
+                prompt += `${part} `;
+            }
+        } else {
+            prompt += `${part} `;
+        }
+    }
+
+    return {
+        prompt: prompt.trim(),
+        fileContents: fileContents.join('\n\n'),
+    };
+};
+
+export const handleCommand = async (line, outputBox, showError, quickStartContent, inputBox) => {
     const parts = line.trim().split(' ');
     const command = parts[0];
     const args = parts.slice(1);
@@ -93,10 +119,14 @@ export const handleCommand = async (line, outputBox, showError, quickStartConten
         case '/quit':
             return process.exit(0);
         default:
-            outputBox.setContent(chalk.bold.cyan('You:') + `
-${line}
-`);
-            return runOllama(line, outputBox, showError);
+            const { prompt, fileContents } = await parseMentions(line);
+            const fullPrompt = fileContents ? `${fileContents}\n\n${prompt}` : prompt;
+
+            await fs.writeFile('prompt.log', fullPrompt);
+
+            outputBox.insertBottom(formatPrompt(line));
+            outputBox.screen.render();
+            return runOllama(fullPrompt, outputBox, showError, inputBox);
     }
     outputBox.screen.render();
 };
