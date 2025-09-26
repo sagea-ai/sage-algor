@@ -262,7 +262,7 @@ export const App = () => {
     fileList.on('select', (item) => {
         const value = inputBox.getValue();
         const lastAt = value.lastIndexOf('@');
-        const newValue = value.substring(0, lastAt) + `{green-fg}${item.getText()}{/green-fg}`;
+        const newValue = value.substring(0, lastAt) + `@{green-fg}${item.getText()}{/green-fg}`.replace(/\\/g, '/');
         inputBox.setValue(newValue);
         fileList.hide();
         inputBox.focus();

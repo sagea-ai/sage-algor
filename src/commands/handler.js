@@ -9,6 +9,47 @@ import path from 'path';
 const require = createRequire(import.meta.url);
 const packageJson = require('../../package.json');
 
+const processMention = async (mention) => {
+    const mentionedPath = path.resolve(process.cwd(), mention);
+    let fileContents = [];
+
+    try {
+        const stats = await fs.stat(mentionedPath);
+        const isHidden = path.basename(mentionedPath).startsWith('.');
+
+        if (isHidden) {
+            return '';
+        }
+
+        if (stats.isDirectory()) {
+            const files = await fs.readdir(mentionedPath, { withFileTypes: true });
+            for (const file of files) {
+                const filePath = path.join(mentionedPath, file.name);
+                const fileStats = await fs.stat(filePath);
+                const isFileHidden = path.basename(filePath).startsWith('.');
+
+                if (isFileHidden) {
+                    continue;
+                }
+
+                if (fileStats.isDirectory()) {
+                    fileContents.push(await processMention(filePath));
+                } else {
+                    const content = await fs.readFile(filePath, 'utf-8');
+                    fileContents.push(`File: ${filePath}\n${content}`);
+                }
+            }
+        } else {
+            const content = await fs.readFile(mentionedPath, 'utf-8');
+            fileContents.push(`File: ${mentionedPath}\n${content}`);
+        }
+    } catch (error) {
+        return ``;
+    }
+
+    return fileContents.join('\n\n');
+};
+
 const parseMentions = async (line) => {
     const parts = line.split(' ');
     let prompt = '';
@@ -16,13 +57,8 @@ const parseMentions = async (line) => {
 
     for (const part of parts) {
         if (part.startsWith('@')) {
-            const filePath = path.resolve(process.cwd(), part.substring(1));
-            try {
-                const content = await fs.readFile(filePath, 'utf-8');
-                fileContents.push(`File: ${filePath}\n${content}`);
-            } catch (error) {
-                prompt += `${part} `;
-            }
+            const mention = part.substring(1);
+            fileContents.push(await processMention(mention));
         } else {
             prompt += `${part} `;
         }
