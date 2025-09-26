@@ -11,6 +11,7 @@ const quickStartContent = `
 │ 2. Be specific for the best results.                           │
 │ 3. Create {red-fg}SAGE.md{/red-fg} files to customize your interactions.        │
 │ 4. {red-fg}/help{/red-fg} for more information.                                 │
+│ 5. use {red-fg}@{/red-fg} to add a file as context for {cyan-fg}SAGE{/cyan-fg}                     │
 ╰────────────────────────────────────────────────────────────────╯
 `;
 
