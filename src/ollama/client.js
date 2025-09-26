@@ -20,21 +20,34 @@ export const runOllama = async (prompt, outputBox, showError) => {
     let i = 0;
     const spinnerInterval = setInterval(() => {
         const spinner = spinnerChars[i++ % spinnerChars.length];
-        outputBox.setContent(`{cyan-fg} {bold}${spinner} Algor is thinking...{bold}{cyan-fg}`);
+        outputBox.setContent(`{cyan-fg}{bold}${spinner} Algor is thinking...{/bold}{/cyan-fg}`);
         outputBox.screen.render();
     }, 80);
 
     try {
-        const { stdout } = await execa('ollama', ['run', 'comethrusws/sage-reasoning:3b', finalPrompt]);
-        clearInterval(spinnerInterval);
-        const formattedOutput = marked.parse(stdout);
-        outputBox.setContent(chalk.bold.green('Algor:') + `\n${formattedOutput}`);
+        const subprocess = execa('ollama', ['run', 'comethrusws/sage-reasoning:3b'], { input: finalPrompt });
+
+        let fullOutput = '';
+        let firstChunk = true;
+
+        subprocess.stdout.on('data', (data) => {
+            if (firstChunk) {
+                clearInterval(spinnerInterval);
+                outputBox.setContent(chalk.bold.green('Algor:') + `\n`);
+                firstChunk = false;
+            }
+            const chunk = data.toString();
+            fullOutput += chunk;
+            const formattedOutput = marked.parse(fullOutput);
+            outputBox.setContent(chalk.bold.green('Algor:') + `\n${formattedOutput}`);
+            outputBox.screen.render();
+        });
+
+        await subprocess;
 
     } catch (error) {
         clearInterval(spinnerInterval);
         const errorMessage = error.stderr || error.message;
         showError(`${chalk.red('Error communicating with Ollama:')}\n${errorMessage}\nPlease ensure Ollama is running and the model \`comethrusws/sage-reasoning:3b\` is installed.`);
-    } finally {
-        outputBox.screen.render();
     }
 };
