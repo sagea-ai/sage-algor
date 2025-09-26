@@ -5,6 +5,15 @@ import chalk from 'chalk';
 import fs from 'fs/promises';
 import path from 'path';
 
+const quickStartContent = `
+╭────────────────────────────────────────────────────────────────╮
+│ 1. Ask questions, edit files, or run commands.                 │
+│ 2. Be specific for the best results.                           │
+│ 3. Create {red-fg}SAGE.md{/red-fg} files to customize your interactions.        │
+│ 4. {red-fg}/help{/red-fg} for more information.                                 │
+╰────────────────────────────────────────────────────────────────╯
+`;
+
 export const App = () => {
     const screen = blessed.screen({
         smartCSR: true,
