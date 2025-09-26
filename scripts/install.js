@@ -12,14 +12,15 @@ const installOllama = async () => {
             spinner.text = 'Downloading and running Ollama installation script...';
             await execa('curl -fsSL https://ollama.com/install.sh | sh', { shell: true });
             spinner.succeed('Ollama installed successfully.');
+            return true;
         } else if (platform === 'win32') {
             spinner.warn(chalk.yellow('Ollama requires manual installation on Windows.'));
             console.log(chalk.cyan('Please download and install Ollama from: https://ollama.com/download'));
-            // we can't proceed automatically on Windows.
-            return;
+            console.log(chalk.cyan('After installation, please run `npm install` again.'));
+            return false;
         } else {
             spinner.fail(`Unsupported platform: ${platform}`);
-            return;
+            return false;
         }
     } catch (error) {
         spinner.fail('Failed to install Ollama.');
@@ -41,16 +42,21 @@ const pullModel = async () => {
 };
 
 const main = async () => {
+    let ollamaInstalled = false;
     try {
-        // check if we have  ollama installed
+        // Check if ollama is installed
         await execa('ollama', ['--version']);
+        ollamaInstalled = true;
         console.log('Ollama is already installed.');
     } catch (error) {
         // Ollama not found, let's install it
-        await installOllama();
+        ollamaInstalled = await installOllama();
     }
 
-    await pullModel();
+    // Now pull the model if ollama is installed
+    if (ollamaInstalled) {
+        await pullModel();
+    }
 };
 
 main().catch(() => process.exit(1));
