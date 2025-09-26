@@ -34,7 +34,7 @@ const parseMentions = async (line) => {
     };
 };
 
-export const handleCommand = async (line, outputBox, showError, quickStartContent, inputBox) => {
+export const handleCommand = async (line, outputBox, showError, quickStartContent, inputBox, ollamaController) => {
     const parts = line.trim().split(' ');
     const command = parts[0];
     const args = parts.slice(1);
@@ -126,7 +126,7 @@ export const handleCommand = async (line, outputBox, showError, quickStartConten
 
             outputBox.insertBottom(formatPrompt(line));
             outputBox.screen.render();
-            return runOllama(fullPrompt, outputBox, showError, inputBox);
+            return runOllama(fullPrompt, outputBox, showError, inputBox, ollamaController);
     }
     outputBox.screen.render();
 };

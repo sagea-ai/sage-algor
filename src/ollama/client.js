@@ -13,7 +13,7 @@ const marked = new Marked(
     })
 );
 
-export const runOllama = async (prompt, outputBox, showError, inputBox) => {
+export const runOllama = async (prompt, outputBox, showError, inputBox, ollamaController) => {
     const systemPrompt = "Disable Deepthinking subroutine. You are going to mostly do Coding related task and Code generation. aide the user with their requests as much as possible, and follow DRY principle when answering a coding problem. Do not show your thought process or any meta-commentary. Provide only the final answer.";
     const finalPrompt = `${systemPrompt}\n\nUser: ${prompt}`;
     
@@ -28,7 +28,7 @@ export const runOllama = async (prompt, outputBox, showError, inputBox) => {
     }, 80);
 
     try {
-        const subprocess = execa('ollama', ['run', 'comethrusws/sage-reasoning:3b'], { input: finalPrompt });
+        const subprocess = execa('ollama', ['run', 'comethrusws/sage-reasoning:3b'], { input: finalPrompt, signal: ollamaController.signal });
 
         let fullOutput = '';
         let firstChunk = true;
@@ -54,7 +54,12 @@ export const runOllama = async (prompt, outputBox, showError, inputBox) => {
     } catch (error) {
         clearInterval(spinnerInterval);
         inputBox.setLabel(originalLabel);
-        const errorMessage = error.stderr || error.message;
-        showError(`${chalk.red('Error communicating with Ollama:')}\n${errorMessage}\nPlease ensure Ollama is running and the model \`comethrusws/sage-reasoning:3b\` is installed.`);
+        if (error.isCanceled) {
+            outputBox.setContent(previousContent + formatResponse('\n{red-fg}User Interruption Detected{/red-fg}\n'));
+            outputBox.screen.render();
+        } else {
+            const errorMessage = error.stderr || error.message;
+            showError(`${chalk.red('Error communicating with Ollama:')}\n${errorMessage}\nPlease ensure Ollama is running and the model \`comethrusws/sage-reasoning:3b\` is installed.`);
+        }
     }
 };

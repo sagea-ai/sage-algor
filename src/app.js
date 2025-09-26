@@ -132,6 +132,8 @@ export const App = () => {
     let readyToExit = false;
     let exitTimeout = null;
 
+    let ollamaController = new AbortController();
+
     const cancelExit = () => {
         if (readyToExit) {
             readyToExit = false;
@@ -142,10 +144,18 @@ export const App = () => {
 
     // Handle exit
     screen.key(['escape', 'q'], (ch, key) => {
-        return process.exit(0);
+        if (key.name === 'escape') {
+            ollamaController.abort();
+        } else if (key.name === 'q') {
+            return process.exit(0);
+        }
     });
     inputBox.key(['escape', 'q'], (ch, key) => {
-        return process.exit(0);
+        if (key.name === 'escape') {
+            ollamaController.abort();
+        } else if (key.name === 'q') {
+            return process.exit(0);
+        }
     });
 
     const handleCtrlC = () => {
@@ -296,7 +306,8 @@ export const App = () => {
         if (cleanLine.trim()) {
             history.push(cleanLine);
             historyIndex = history.length;
-            handleCommand(cleanLine, chatBox, showError, quickStartContent, inputBox);
+            ollamaController = new AbortController();
+            handleCommand(cleanLine, chatBox, showError, quickStartContent, inputBox, ollamaController);
         }
         inputBox.clearValue();
         inputBox.focus();
